@@ -67,3 +67,7 @@ dependencies {
     implementation("androidx.media3:media3-ui:$media3Version")             // For UI components like PlayerView
     implementation("com.paypal.android:paypal-native-payments:1.7.1")
 }
+
+tasks.named("preBuild") {
+    dependsOn(rootProject.tasks.named("startApi"))
+}

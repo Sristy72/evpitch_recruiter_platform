@@ -109,9 +109,10 @@ class _CompanyEditAccountPageState extends State<CompanyEditAccountPage> {
   @override
   void initState() {
     super.initState();
-    bannerPickerController.clearSelection();
-    imagePickerController.clearSelection();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      bannerPickerController.clearSelection();
+      imagePickerController.clearSelection();
+
       final company = widget.companyData.companies.first;
       // final honor = widget.companyData.honors.first;
       final List<Honor> awards = widget.companyData.honors;
@@ -323,7 +324,8 @@ class _CompanyEditAccountPageState extends State<CompanyEditAccountPage> {
                         return CroppedImagePickerCard(
                           onTap: imagePickerController.showPickerOptions,
                           file: imagePickerController.selectedImage.value,
-                          imageUrl: imagePickerController.existingImageUrl.value,
+                          imageUrl:
+                              imagePickerController.existingImageUrl.value,
                           width: 130,
                           height: 130,
                           borderRadius: 8,
@@ -1232,118 +1234,135 @@ class _CompanyEditAccountPageState extends State<CompanyEditAccountPage> {
                     width: 150,
                     child: Obx(
                       () => ElevatedButton(
-                      onPressed: controller.isLoading.value
-                          ? null
-                          : () async {
-                        if (!_formKey.currentState!.validate())
-                          return;
-                        if (controller.isLoading.value) return;
+                        onPressed: controller.isLoading.value
+                            ? null
+                            : () async {
+                                if (!_formKey.currentState!.validate()) return;
+                                if (controller.isLoading.value) return;
 
-                        try {
-                          // Validate country & city
-                          final country =
-                              jobController.selectedCountry.value ?? '';
-                          final city = jobController.selectedCity.value ?? '';
-                          if (country.isEmpty || city.isEmpty) {
-                            Get.snackbar(
-                              "Error",
-                              "Please select country and city",
-                            );
-                            return;
-                          }
+                                try {
+                                  // Validate country & city
+                                  final country =
+                                      jobController.selectedCountry.value ?? '';
+                                  final city =
+                                      jobController.selectedCity.value ?? '';
+                                  if (country.isEmpty || city.isEmpty) {
+                                    Get.snackbar(
+                                      "Error",
+                                      "Please select country and city",
+                                    );
+                                    return;
+                                  }
 
-                          final zipCode = int.tryParse(
-                            controller.postalCodeController.text.trim(),
-                          );
-                          if (zipCode == null) {
-                            Get.snackbar("Error", "Invalid postal code");
-                            return;
-                          }
+                                  final zipCode = int.tryParse(
+                                    controller.postalCodeController.text.trim(),
+                                  );
+                                  if (zipCode == null) {
+                                    Get.snackbar(
+                                      "Error",
+                                      "Invalid postal code",
+                                    );
+                                    return;
+                                  }
 
-                          // Validate banner & logo
-                          if (bannerPickerController.selectedImage.value ==
-                                  null &&
-                              bannerPickerController
-                                  .existingImageUrl
-                                  .value
-                                  .isEmpty) {
-                            Get.snackbar(
-                              "Error",
-                              "Please upload a company banner",
-                            );
-                            return;
-                          }
-                          if (imagePickerController.selectedImage.value ==
-                                  null &&
-                              imagePickerController
-                                  .existingImageUrl
-                                  .value
-                                  .isEmpty) {
-                            Get.snackbar(
-                              "Error",
-                              "Please upload a company logo",
-                            );
-                            return;
-                          }
+                                  // Validate banner & logo
+                                  if (bannerPickerController
+                                              .selectedImage
+                                              .value ==
+                                          null &&
+                                      bannerPickerController
+                                          .existingImageUrl
+                                          .value
+                                          .isEmpty) {
+                                    Get.snackbar(
+                                      "Error",
+                                      "Please upload a company banner",
+                                    );
+                                    return;
+                                  }
+                                  if (imagePickerController
+                                              .selectedImage
+                                              .value ==
+                                          null &&
+                                      imagePickerController
+                                          .existingImageUrl
+                                          .value
+                                          .isEmpty) {
+                                    Get.snackbar(
+                                      "Error",
+                                      "Please upload a company logo",
+                                    );
+                                    return;
+                                  }
 
-                          // Get awards JSON
-                          final awardsJson = jsonEncode(controller.getAwards());
+                                  // Get awards JSON
+                                  final awardsJson = jsonEncode(
+                                    controller.getAwards(),
+                                  );
 
-                          // Call updateCompany
-                          await controller.updateCompany(
-                            widget.companyData.companies.first.id,
-                            bannerPickerController.selectedImage.value, // File?
-                            imagePickerController.selectedImage.value, // File?
-                            controller.companyNameController.text.trim(),
-                            country,
-                            city,
-                            zipCode,
-                            controller.emailController.text.trim(),
-                            _descriptionTController.text.trim(),
-                            controller.industryController.text.trim(),
-                            _linkedINTEController.text.trim(),
-                            _twitterTEController.text.trim(),
-                            _upworkTEController.text.trim(),
-                            _facebookTEController.text.trim(),
-                            _tiktokTEController.text.trim(),
-                            _instaTEController.text.trim(),
-                            _fiverrTEController.text.trim(),
-                            _comapanyTEController.text.trim(),
-                            "", // services (handled internally by getServices())
-                            "", // recruiters (handled by employeeIdMap)
-                            awardsJson,
-                          );
-                        } catch (e) {
-                          debugPrint("Save Error: $e");
-                          Get.snackbar("Error", "Failed to update company: $e");
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF2B7FD0),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
+                                  // Call updateCompany
+                                  await controller.updateCompany(
+                                    widget.companyData.companies.first.id,
+                                    bannerPickerController
+                                        .selectedImage
+                                        .value, // File?
+                                    imagePickerController
+                                        .selectedImage
+                                        .value, // File?
+                                    controller.companyNameController.text
+                                        .trim(),
+                                    country,
+                                    city,
+                                    zipCode,
+                                    controller.emailController.text.trim(),
+                                    _descriptionTController.text.trim(),
+                                    controller.industryController.text.trim(),
+                                    _linkedINTEController.text.trim(),
+                                    _twitterTEController.text.trim(),
+                                    _upworkTEController.text.trim(),
+                                    _facebookTEController.text.trim(),
+                                    _tiktokTEController.text.trim(),
+                                    _instaTEController.text.trim(),
+                                    _fiverrTEController.text.trim(),
+                                    _comapanyTEController.text.trim(),
+                                    "", // services (handled internally by getServices())
+                                    "", // recruiters (handled by employeeIdMap)
+                                    awardsJson,
+                                  );
+                                } catch (e) {
+                                  debugPrint("Save Error: $e");
+                                  Get.snackbar(
+                                    "Error",
+                                    "Failed to update company: $e",
+                                  );
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF2B7FD0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
                         ),
-                      ),
-                      child: controller.isLoading.value
-                          ? const SizedBox(
-                              height: 18,
-                              width: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
+                        child: controller.isLoading.value
+                            ? const SizedBox(
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                            : const Text(
+                                'Save',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                            )
-                          : const Text(
-                              'Save',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                    ),
+                      ),
                     ),
                   ),
 

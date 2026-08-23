@@ -23,8 +23,12 @@ class ImageController extends GetxController {
   }
 
   void clearSelection() {
-    selectedImage.value = null;
-    existingImageUrl.value = '';
+    if (selectedImage.value != null) {
+      selectedImage.value = null;
+    }
+    if (existingImageUrl.value.isNotEmpty) {
+      existingImageUrl.value = '';
+    }
   }
 
   void showPickerOptions() {

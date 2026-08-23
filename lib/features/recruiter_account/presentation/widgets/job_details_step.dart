@@ -52,10 +52,6 @@ class _JobDetailsStepState extends State<JobDetailsStep> {
     if (controller.currencies.isEmpty) {
       controller.loadCurrenciesIfEmpty();
     }
-    if (controller.vacancies.value.isEmpty) {
-      controller.vacancies.value = '1';
-    }
-
     _jobTitleTEController = TextEditingController(
       text: controller.selectedRole.value,
     );
@@ -376,8 +372,6 @@ class _JobDetailsStepState extends State<JobDetailsStep> {
                 },
               ),
 
-
-
               SizedBox(height: 10),
               FormField(
                 validator: (_) {
@@ -516,7 +510,7 @@ class _JobDetailsStepState extends State<JobDetailsStep> {
               ),
 
               const SizedBox(height: 4),
-               Text(
+              Text(
                 "Maximum 50",
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
               ),

@@ -42,7 +42,7 @@ class JobPostingController extends GetxController {
   RxString jobTitle = ''.obs;
   RxString department = ''.obs;
 
-  RxString vacancies = ''.obs;
+  RxString vacancies = '1'.obs;
   late int vacanciesInt = int.tryParse(vacancies.value) ?? 0;
 
   // Add these setter methods for cleaner updates (optional)
@@ -105,7 +105,7 @@ class JobPostingController extends GetxController {
     // Basic fields
     jobTitle.value = job.title ?? '';
     // department.value = job.department ?? ''; // Uncomment if you have department
-    vacancies.value = job.vacancy?.toString() ?? '';
+    vacancies.value = job.vacancy?.toString() ?? '1';
     compensation.value = job.compensation ?? '';
 
     // Category & Role
@@ -391,8 +391,8 @@ class JobPostingController extends GetxController {
     // Basic info
     jobTitle.value = '';
     department.value = '';
-    vacancies.value = '';
-    vacanciesInt = 0;
+    vacancies.value = '1';
+    vacanciesInt = 1;
 
     // Category & Role
     selectedCategory.value = '';
@@ -450,8 +450,8 @@ class JobPostingController extends GetxController {
     // Basic info
     jobTitle.value = '';
     department.value = '';
-    vacancies.value = '';
-    vacanciesInt = 0;
+    vacancies.value = '1';
+    vacanciesInt = 1;
 
     // Category & Role
     selectedCategory.value = '';

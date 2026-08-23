@@ -83,8 +83,10 @@ class _CreateRecruiterAccountState extends State<CreateRecruiterAccount> {
   @override
   void initState() {
     super.initState();
-    bannerPickerController.clearSelection();
-    imagePickerController.clearSelection();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      bannerPickerController.clearSelection();
+      imagePickerController.clearSelection();
+    });
   }
 
   _submit() {
@@ -276,7 +278,8 @@ class _CreateRecruiterAccountState extends State<CreateRecruiterAccount> {
                         return CroppedImagePickerCard(
                           onTap: bannerPickerController.showPickerOptions,
                           file: bannerPickerController.selectedImage.value,
-                          imageUrl: bannerPickerController.existingImageUrl.value,
+                          imageUrl:
+                              bannerPickerController.existingImageUrl.value,
                           height: 150,
                           borderRadius: 8,
                           editLabel: 'Change banner',
@@ -297,7 +300,8 @@ class _CreateRecruiterAccountState extends State<CreateRecruiterAccount> {
                         return CroppedImagePickerCard(
                           onTap: imagePickerController.showPickerOptions,
                           file: imagePickerController.selectedImage.value,
-                          imageUrl: imagePickerController.existingImageUrl.value,
+                          imageUrl:
+                              imagePickerController.existingImageUrl.value,
                           width: 150,
                           height: 150,
                           borderRadius: 8,

@@ -92,8 +92,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void initState() {
     super.initState();
     final recruiter = widget.recruiterResponseModel;
-    companyImageController.clearSelection();
-    imagePickerController.clearSelection();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      companyImageController.clearSelection();
+      imagePickerController.clearSelection();
+    });
 
     // Text fields
     final plainBio = htmlToPlainText(recruiter.bio);
@@ -256,7 +258,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           left: 0,
                           right: 0,
                           child: Obx(() {
-                            final file = companyImageController.selectedImage.value;
+                            final file =
+                                companyImageController.selectedImage.value;
                             final url =
                                 companyImageController.existingImageUrl.value;
                             return CroppedImagePickerCard(
@@ -277,7 +280,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           left: 20,
                           bottom: 30,
                           child: Obx(() {
-                            final file = imagePickerController.selectedImage.value;
+                            final file =
+                                imagePickerController.selectedImage.value;
                             final url =
                                 imagePickerController.existingImageUrl.value;
                             return CroppedImagePickerCard(
@@ -850,16 +854,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                     // loading flag synchronously BEFORE the async
                                     // getText() round-trip so the button can't be
                                     // tapped again into duplicate PATCH submits.
-                                    if (reCruiController.isLoading.value) return;
+                                    if (reCruiController.isLoading.value)
+                                      return;
                                     reCruiController.setLoading(true);
                                     try {
                                       final String currentBioHtml =
                                           _biocontroller.text.trim();
                                       await reCruiController.updateRecruiter(
                                         companyImageController
-                                            .selectedImage.value,
+                                            .selectedImage
+                                            .value,
                                         // nullable banner
-                                        imagePickerController.selectedImage.value,
+                                        imagePickerController
+                                            .selectedImage
+                                            .value,
                                         // nullable photo
                                         currentBioHtml, // ← current HTML content
                                         _firstNameTEController.text,
@@ -878,7 +886,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                       );
 
                                       if (reCruiController
-                                          .errorMessage.value.isEmpty) {
+                                          .errorMessage
+                                          .value
+                                          .isEmpty) {
                                         Get.back();
                                       }
                                     } finally {
@@ -892,8 +902,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                   },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Color(0xFF2B7FD0),
-                              disabledBackgroundColor: Color(0xFF2B7FD0)
-                                  .withOpacity(0.6),
+                              disabledBackgroundColor: Color(
+                                0xFF2B7FD0,
+                              ).withOpacity(0.6),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(5),
                               ),

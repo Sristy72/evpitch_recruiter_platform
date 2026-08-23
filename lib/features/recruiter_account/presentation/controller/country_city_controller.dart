@@ -42,7 +42,7 @@ class LocationController extends GetxController {
       errorMessage.value = '';
 
       final response = await http.get(
-        Uri.parse('https://test.evpitch.com/api/v1/countries'),
+        Uri.parse('https://api.evpitch.com/api/v1/countries'),
         headers: {
           'Accept': 'application/json',
           // Add authorization header if needed in future

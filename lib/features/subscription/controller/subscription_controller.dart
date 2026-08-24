@@ -30,7 +30,7 @@ class SubscriptionController extends GetxController {
     'com.pooelcentral.giveandtake.company.bronze',
     'com.pooelcentral.giveandtake.company.silver',
     'com.pooelcentral.giveandtake.company.gold',
-    'com.pooelcentral.giveandtake.company.platinum',
+    // 'com.pooelcentral.giveandtake.company.platinum',
     'company_month',
   };
 

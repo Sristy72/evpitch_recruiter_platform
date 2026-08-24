@@ -47,18 +47,22 @@ class RecruiterAccountInput {
 
 class CompanyHonorInput {
   const CompanyHonorInput({
+    this.id,
     required this.title,
     required this.programeName,
     required this.programeDate,
     required this.description,
   });
 
+  final String? id;
   final String title;
   final String programeName;
   final String programeDate;
   final String description;
 
   Map<String, dynamic> toJson() => {
+    if (nullIfBlank(id) != null) '_id': id!.trim(),
+    'type': nullIfBlank(id) == null ? 'create' : 'update',
     'title': title,
     'programeName': programeName,
     'issuer': programeName,
@@ -164,14 +168,12 @@ class CompanyPayloadBuilder {
     payload.putField('zipcode', input.zipcode);
     payload.putField('service', jsonEncode(input.service));
     payload.putField('employeesId', jsonEncode(input.employeesId));
-    payload.putField(
-      'AwardsAndHonors',
-      encodeJsonList(input.awardsAndHonors.map((item) => item.toJson()).toList()),
+    final honorsJson = encodeJsonList(
+      input.awardsAndHonors.map((item) => item.toJson()).toList(),
     );
-    payload.putField(
-      'honors',
-      encodeJsonList(input.awardsAndHonors.map((item) => item.toJson()).toList()),
-    );
+    payload.putField('awardsAndHonors', honorsJson);
+    payload.putField('AwardsAndHonors', honorsJson);
+    payload.putField('honors', honorsJson);
     payload.putField(
       'sLink',
       jsonEncode(

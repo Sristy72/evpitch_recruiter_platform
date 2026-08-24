@@ -87,6 +87,7 @@ class _CreateCompanyAccountPageState extends State<CreateCompanyAccountPage> {
   @override
   void initState() {
     super.initState();
+    controller.setEmailFromSignedInUser(overwrite: true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       bannerPickerController.clearSelection();
       imagePickerController.clearSelection();
@@ -399,6 +400,8 @@ class _CreateCompanyAccountPageState extends State<CreateCompanyAccountPage> {
                             controller: controller.emailController, // ✅ bind
                             hintText: "Enter your email",
                             isRequired: true,
+                            readOnly: true,
+                            backgroundColor: const Color(0xFFF3F4F6),
                           ),
                         ),
                       ],

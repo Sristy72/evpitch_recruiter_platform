@@ -108,18 +108,9 @@ void main() {
       expect(experiences.single['position'], 'Designer');
       expect(experiences.single['currentlyWorking'], isTrue);
       expect(experiences.single.containsKey('endDate'), isFalse);
-      expect(
-        experiences.single['startDate'],
-        '2024-01-01T00:00:00.000Z',
-      );
-      expect(
-        education.single['graduationDate'],
-        '2023-12-01T00:00:00.000Z',
-      );
-      expect(
-        honors.single['programeDate'],
-        '2024-02-01T00:00:00.000Z',
-      );
+      expect(experiences.single['startDate'], '2024-01-01T00:00:00.000Z');
+      expect(education.single['graduationDate'], '2023-12-01T00:00:00.000Z');
+      expect(honors.single['programeDate'], '2024-02-01T00:00:00.000Z');
       expect(payload.files['photo']!.single.path, photo.path);
       expect(payload.files['banner']!.single.path, banner.path);
     });
@@ -266,10 +257,7 @@ void main() {
       expect(payload.fields['emailAddress'], 'jane@example.com');
       expect(payload.fields['companyId'], 'company-1');
       expect(payload.fields['sLink[0][label]'], 'LinkedIn');
-      expect(
-        payload.fields['sLink[0][url]'],
-        'https://linkedin.com/in/jane',
-      );
+      expect(payload.fields['sLink[0][url]'], 'https://linkedin.com/in/jane');
       expect(payload.files['photo']!.single.path, photo.path);
       expect(payload.files['banner']!.single.path, banner.path);
     });
@@ -289,6 +277,7 @@ void main() {
           employeesId: const ['1-10', '11-50'],
           awardsAndHonors: const [
             CompanyHonorInput(
+              id: 'award-1',
               title: 'Winner',
               programeName: 'Startup Awards',
               programeDate: '03/2026',
@@ -296,10 +285,7 @@ void main() {
             ),
           ],
           socialLinks: const [
-            WebSocialLinkInput(
-              label: 'Website',
-              url: 'https://acme.com',
-            ),
+            WebSocialLinkInput(label: 'Website', url: 'https://acme.com'),
           ],
           clogo: logo,
           banner: banner,
@@ -308,16 +294,23 @@ void main() {
 
       expect(payload.fields['cname'], 'Acme');
       expect(payload.fields['zipcode'], '1212');
-      expect(
-        jsonDecode(payload.fields['service']!) as List<dynamic>,
-        ['Design', 'Engineering'],
-      );
-      expect(
-        jsonDecode(payload.fields['employeesId']!) as List<dynamic>,
-        ['1-10', '11-50'],
-      );
+      expect(jsonDecode(payload.fields['service']!) as List<dynamic>, [
+        'Design',
+        'Engineering',
+      ]);
+      expect(jsonDecode(payload.fields['employeesId']!) as List<dynamic>, [
+        '1-10',
+        '11-50',
+      ]);
       final honors =
-          jsonDecode(payload.fields['AwardsAndHonors']!) as List<dynamic>;
+          jsonDecode(payload.fields['awardsAndHonors']!) as List<dynamic>;
+      expect(
+        payload.fields['AwardsAndHonors'],
+        payload.fields['awardsAndHonors'],
+      );
+      expect(payload.fields['honors'], payload.fields['awardsAndHonors']);
+      expect(honors.single['_id'], 'award-1');
+      expect(honors.single['type'], 'update');
       expect(honors.single['programeDate'], '2026-03-01T00:00:00.000Z');
       final social = jsonDecode(payload.fields['sLink']!) as List<dynamic>;
       expect(social.single['url'], 'https://acme.com');
@@ -352,10 +345,7 @@ void main() {
               requirement: JobPayloadBuilder.validVisaLabel,
               status: 'required',
             ),
-            JobRequirementInput(
-              requirement: 'Resume/CV',
-              status: '',
-            ),
+            JobRequirementInput(requirement: 'Resume/CV', status: ''),
           ],
           customQuestion: [
             JobQuestionInput(question: 'Why you?'),
@@ -372,21 +362,12 @@ void main() {
       expect(payload['expirationDate'], '45');
       expect(payload['deadline'], '2026-05-23T00:00:00.000Z');
       expect(payload['expiryDate'], '2026-05-23T00:00:00.000Z');
-      expect(
-        payload['applicationRequirement'],
-        [
-          {
-            'requirement': JobPayloadBuilder.validVisaLabel,
-            'status': 'required',
-          },
-        ],
-      );
-      expect(
-        payload['customQuestion'],
-        [
-          {'question': 'Why you?'},
-        ],
-      );
+      expect(payload['applicationRequirement'], [
+        {'requirement': JobPayloadBuilder.validVisaLabel, 'status': 'required'},
+      ]);
+      expect(payload['customQuestion'], [
+        {'question': 'Why you?'},
+      ]);
     });
 
     test('ProfilePayloadBuilder combines names like web app', () {
@@ -398,10 +379,7 @@ void main() {
             address: ' Dhaka ',
           ),
         ),
-        {
-          'name': 'Jane Doe',
-          'address': 'Dhaka',
-        },
+        {'name': 'Jane Doe', 'address': 'Dhaka'},
       );
     });
   });
@@ -426,10 +404,7 @@ void main() {
 
     test('resume upload uses /resume contract keys', () {
       final payload = JobApplicationPayloadBuilder.buildResumeUpload(
-        ResumeUploadInput(
-          userId: 'user-1',
-          file: resumeFile,
-        ),
+        ResumeUploadInput(userId: 'user-1', file: resumeFile),
       );
 
       expect(payload.fields['userId'], 'user-1');
@@ -447,18 +422,15 @@ void main() {
         ],
       ).toJson();
 
-      expect(
-        json,
-        {
-          'jobId': 'job-1',
-          'userId': 'user-1',
-          'resumeId': 'resume-1',
-          'answer': const [
-            {'question': 'Why you?', 'ans': 'Because.'},
-          ],
-          'hasValidVisa': true,
-        },
-      );
+      expect(json, {
+        'jobId': 'job-1',
+        'userId': 'user-1',
+        'resumeId': 'resume-1',
+        'answer': const [
+          {'question': 'Why you?', 'ans': 'Because.'},
+        ],
+        'hasValidVisa': true,
+      });
     });
   });
 }

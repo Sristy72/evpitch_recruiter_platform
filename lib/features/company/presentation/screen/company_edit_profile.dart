@@ -58,6 +58,8 @@ class _CompanyEditAccountPageState extends State<CompanyEditAccountPage> {
   final emailController = TextEditingController();
 
   final TextEditingController _descriptionTController = TextEditingController();
+  final TextEditingController _recruiterPickerController =
+      TextEditingController();
 
   final TextEditingController _linkedINTEController = TextEditingController();
 
@@ -202,6 +204,7 @@ class _CompanyEditAccountPageState extends State<CompanyEditAccountPage> {
       if (awards.isNotEmpty) {
         for (var award in awards) {
           controller.awardFields.add({
+            'id': TextEditingController(text: award.id),
             'title': TextEditingController(text: award.title ?? ''),
             'issuer': TextEditingController(
               text: award.programeName ?? '',
@@ -418,6 +421,8 @@ class _CompanyEditAccountPageState extends State<CompanyEditAccountPage> {
                       label: "Email",
                       controller: controller.emailController, // ✅ bind
                       hintText: "Enter your email",
+                      readOnly: true,
+                      backgroundColor: const Color(0xFFF3F4F6),
                       // isRequired: true,
                     ),
                   ),
@@ -895,43 +900,102 @@ class _CompanyEditAccountPageState extends State<CompanyEditAccountPage> {
                         // ← Prevents keyboard from opening
                         child: CustomTextField(
                           label: "Add Profiles of Recruiters",
-                          hintText: "Tap to select recruiter",
-                          controller: controller.employeeControllers[0],
-                          // isRequired: true,
-                          readOnly: true, // keep it
-                          // Remove onTap from here — it won't work reliably
+                          hintText: "Add Here",
+                          controller: _recruiterPickerController,
+                          readOnly: true,
                         ),
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
 
-              // Add More button
+              Obx(() {
+                final selectedRecruiters = controller.employeeControllers
+                    .asMap()
+                    .entries
+                    .where((entry) => entry.value.text.trim().isNotEmpty)
+                    .toList();
+
+                if (selectedRecruiters.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Selected Recruiters:",
+                      style: TextStyle(fontSize: 13, color: AppColors.textGrey),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: selectedRecruiters.map((entry) {
+                        final name = entry.value.text.trim();
+                        final initial = name.isNotEmpty
+                            ? name.substring(0, 1).toUpperCase()
+                            : "R";
+
+                        return Chip(
+                          avatar: CircleAvatar(
+                            backgroundColor: const Color(0xFF2B7FD0),
+                            child: Text(
+                              initial,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          label: Text(
+                            name,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textBlack,
+                            ),
+                          ),
+                          deleteIcon: const Icon(Icons.close, size: 16),
+                          onDeleted: () =>
+                              controller.removeSelectedEmployee(entry.key),
+                          backgroundColor: const Color(0xFFF2F3F5),
+                          side: BorderSide.none,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+                );
+              }),
+
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ElevatedButton(
-                    onPressed: controller.addEmployee,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFFFFF),
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 14,
-                      ),
-                      elevation: 0,
+                  OutlinedButton(
+                    onPressed: controller.fetchUsers,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF2B7FD0),
+                      side: const BorderSide(color: Color(0xFF2B7FD0)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(6),
-                        side: const BorderSide(
-                          color: Colors.grey, // border color
-                          width: 1, // border width
-                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
                       ),
                     ),
                     child: const Text(
-                      "Add More +",
+                      "Add More",
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -939,48 +1003,6 @@ class _CompanyEditAccountPageState extends State<CompanyEditAccountPage> {
                     ),
                   ),
                 ],
-              ),
-
-              // Dynamic employee fields
-              Obx(
-                () => Column(
-                  children: List.generate(
-                    controller.employeeControllers.length,
-                    (index) {
-                      if (index == 0)
-                        return const SizedBox.shrink(); // skip first field
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () => controller.fetchUsers(),
-                                child: AbsorbPointer(
-                                  child: CustomTextField(
-                                    label: index == 0
-                                        ? "Add Profiles of Recruiters"
-                                        : "Recruiter ${index + 1}",
-                                    hintText: "Tap to select recruiter",
-                                    controller:
-                                        controller.employeeControllers[index],
-                                    readOnly: true,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            IconButton(
-                              icon: const Icon(Icons.close, color: Colors.red),
-                              onPressed: () =>
-                                  controller.removeEmployeeField(index),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
               ),
 
               const SizedBox(height: 25),

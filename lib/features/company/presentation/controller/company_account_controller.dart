@@ -6,6 +6,7 @@ import 'package:flutx_core/core/debug_print.dart';
 import 'package:get/get.dart';
 import 'package:giveandtake/core/base/base_controller.dart';
 import 'package:giveandtake/core/contracts/web/recruiter_company_contract.dart';
+import 'package:giveandtake/core/services/get_user_profile_service.dart';
 import 'package:giveandtake/features/company/data/model/manage_job_response_model.dart';
 import 'package:giveandtake/features/company/data/model/recruiter_added_response_model.dart';
 import 'package:giveandtake/features/company/data/model/single_Company_response_model.dart';
@@ -80,6 +81,31 @@ class CompanyAccountController extends BaseController {
     // Start with one service field
     serviceControllers.add(TextEditingController());
     employeeControllers.add(TextEditingController());
+    setEmailFromSignedInUser();
+  }
+
+  Future<void> setEmailFromSignedInUser({bool overwrite = false}) async {
+    if (!overwrite && emailController.text.trim().isNotEmpty) return;
+
+    final profileEmail = Get.isRegistered<GetUserProfileService>()
+        ? Get.find<GetUserProfileService>().userInfo?.email.trim()
+        : null;
+
+    if (profileEmail != null && profileEmail.isNotEmpty) {
+      emailController.text = profileEmail;
+      return;
+    }
+
+    final userDataJson = await _authStorageService.getUserData();
+    if (userDataJson == null || userDataJson.isEmpty) return;
+
+    final userData = jsonDecode(userDataJson);
+    if (userData is! Map<String, dynamic>) return;
+
+    final storedEmail = userData['email']?.toString().trim() ?? '';
+    if (storedEmail.isNotEmpty) {
+      emailController.text = storedEmail;
+    }
   }
 
   // --- Service Management ---
@@ -103,6 +129,7 @@ class CompanyAccountController extends BaseController {
 
   void addAwardField() {
     awardFields.add({
+      'id': TextEditingController(),
       'title': TextEditingController(),
       'issuer': TextEditingController(),
       'date': TextEditingController(),
@@ -113,6 +140,7 @@ class CompanyAccountController extends BaseController {
   // Remove award fields
   void removeAwardField(int index) {
     final fields = awardFields[index];
+    fields['id']?.dispose();
     fields['title']?.dispose();
     fields['issuer']?.dispose();
     fields['date']?.dispose();
@@ -171,12 +199,37 @@ class CompanyAccountController extends BaseController {
     }
   }
 
+  void removeSelectedEmployee(int index) {
+    if (index < 0 || index >= employeeControllers.length) return;
+
+    final selectedController = employeeControllers[index];
+    employeeIdMap.remove(selectedController);
+
+    if (employeeControllers.length == 1) {
+      selectedController.clear();
+      employeeControllers.refresh();
+      return;
+    }
+
+    employeeControllers.removeAt(index);
+  }
+
   // Get employee values
   List<String> getEmployees() {
     return employeeControllers
         .map((c) => c.text.trim())
         .where((e) => e.isNotEmpty)
         .toList();
+  }
+
+  String _recruiterDisplayName(AllUserResponseModel user) {
+    final name = user.name.trim();
+    if (name.isNotEmpty) return name;
+
+    final email = user.email.trim();
+    if (email.isNotEmpty) return email;
+
+    return 'Recruiter';
   }
 
   // --- Video Upload ---
@@ -237,22 +290,17 @@ class CompanyAccountController extends BaseController {
   //   issuerController.dispose();
   //   issueDateController.dispose();
   //   awardDescriptionController.dispose();
-    
   //   addMoreLinksController.dispose();
   //   otherWebsiteController2.dispose();
-
   //   // Dispose service controllers
   //   for (var c in serviceControllers) {
   //     c.dispose();
   //   }
-
   //   for (var c in employeeControllers) {
   //     c.dispose();
   //   }
-
   //   super.onClose();
   // }
-
   Future<void> fetchUsers() async {
     setLoading(true);
     setError('');
@@ -297,6 +345,25 @@ class CompanyAccountController extends BaseController {
       return;
     }
 
+    final namesById = <String, String>{};
+    final currentUserId = await _authStorageService.getUserId();
+    if (currentUserId != null && currentUserId.isNotEmpty) {
+      final employeeResult = await _companyRepo.fetchEmployee(currentUserId);
+      employeeResult.fold((_) {}, (success) {
+        for (final employee in success.data.employees) {
+          final name = employee.name.trim();
+          final email = employee.email.trim();
+          if (employee.id.isNotEmpty) {
+            namesById[employee.id] = name.isNotEmpty
+                ? name
+                : email.isNotEmpty
+                ? email
+                : 'Recruiter';
+          }
+        }
+      });
+    }
+
     final byId = <String, AllUserResponseModel>{};
     final result = await _companyRepo.fetchAllUsers();
     result.fold((_) {}, (s) {
@@ -306,10 +373,13 @@ class CompanyAccountController extends BaseController {
     });
 
     final ctrls = <TextEditingController>[];
-    for (final id in employeeIds) {
+    for (var index = 0; index < employeeIds.length; index++) {
+      final id = employeeIds[index];
       final u = byId[id];
       final ctrl = TextEditingController(
-        text: (u != null && u.name.isNotEmpty) ? u.name : id,
+        text:
+            namesById[id] ??
+            (u != null ? _recruiterDisplayName(u) : 'Recruiter ${index + 1}'),
       );
       employeeIdMap[ctrl] = id; // keep the id so save round-trips correctly
       ctrls.add(ctrl);
@@ -405,10 +475,9 @@ class CompanyAccountController extends BaseController {
                   itemCount: filtered.length,
                   itemBuilder: (context, index) {
                     final user = filtered[index];
-                    final displayText = "${user.name} (${user.email})";
-
-                    final isAlreadyAdded = employeeControllers.any(
-                      (c) => c.text.contains(user.email),
+                    final displayName = _recruiterDisplayName(user);
+                    final isAlreadyAdded = employeeIdMap.values.contains(
+                      user.id,
                     );
 
                     return Card(
@@ -421,13 +490,13 @@ class CompanyAccountController extends BaseController {
                               : null,
                           child: user.avatarUrl.isEmpty
                               ? Text(
-                                  user.name.isNotEmpty
-                                      ? user.name[0].toUpperCase()
+                                  displayName.isNotEmpty
+                                      ? displayName[0].toUpperCase()
                                       : "R",
                                 )
                               : null,
                         ),
-                        title: Text(user.name),
+                        title: Text(displayName),
                         subtitle: Text(user.email),
                         trailing: isAlreadyAdded
                             ? const Icon(
@@ -440,15 +509,20 @@ class CompanyAccountController extends BaseController {
                             : () {
                                 final emptyCtrl = employeeControllers
                                     .firstWhere(
-                                      (c) => c.text.isEmpty,
-                                      orElse: () => employeeControllers.last,
+                                      (c) => c.text.trim().isEmpty,
+                                      orElse: () {
+                                        final ctrl = TextEditingController();
+                                        employeeControllers.add(ctrl);
+                                        return ctrl;
+                                      },
                                     );
 
                                 // Display name in the text field
-                                emptyCtrl.text = user.name;
+                                emptyCtrl.text = displayName;
 
                                 // Store ID in the map
                                 employeeIdMap[emptyCtrl] = user.id;
+                                employeeControllers.refresh();
 
                                 Get.back();
                                 Get.snackbar(
@@ -658,18 +732,22 @@ class CompanyAccountController extends BaseController {
   }
 
   List<CompanyHonorInput> _buildCompanyHonors() {
-    return awardFields.map((fields) {
-      return CompanyHonorInput(
-        title: fields['title']?.text.trim() ?? '',
-        programeName: fields['issuer']?.text.trim() ?? '',
-        programeDate: fields['date']?.text.trim() ?? '',
-        description: fields['description']?.text.trim() ?? '',
-      );
-    }).where((item) {
-      return item.title.trim().isNotEmpty ||
-          item.programeName.trim().isNotEmpty ||
-          item.description.trim().isNotEmpty;
-    }).toList();
+    return awardFields
+        .map((fields) {
+          return CompanyHonorInput(
+            id: fields['id']?.text.trim(),
+            title: fields['title']?.text.trim() ?? '',
+            programeName: fields['issuer']?.text.trim() ?? '',
+            programeDate: fields['date']?.text.trim() ?? '',
+            description: fields['description']?.text.trim() ?? '',
+          );
+        })
+        .where((item) {
+          return item.title.trim().isNotEmpty ||
+              item.programeName.trim().isNotEmpty ||
+              item.description.trim().isNotEmpty;
+        })
+        .toList();
   }
 
   List<WebSocialLinkInput> _buildCompanySocialLinks({
